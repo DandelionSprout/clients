@@ -40,7 +40,7 @@ async function hasActiveUser() {
   return activeUserStorageValue[activeUserIdKey] !== undefined;
 }
 
-const messenger = Messenger.forDOMCommunication(window);
+const messenger = Messenger.forDOMCommunication(window, "content-script");
 
 function initializeFido2ContentScript() {
   const s = document.createElement("script");

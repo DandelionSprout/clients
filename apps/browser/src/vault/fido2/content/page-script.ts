@@ -52,7 +52,7 @@ const browserCredentials = {
   get: navigator.credentials.get.bind(navigator.credentials) as typeof navigator.credentials.get,
 };
 
-const messenger = Messenger.forDOMCommunication(window);
+const messenger = Messenger.forDOMCommunication(window, "page-script");
 
 function isSameOriginWithAncestors() {
   try {
@@ -198,6 +198,10 @@ async function waitForFocus(fallbackWait = 500, timeout = 5 * 60 * 1000) {
 }
 
 window.addEventListener("message", (event) => {
+  if (event.data.type !== "cleanup") {
+    return;
+  }
+
   messenger.cleanup();
 
   if (browserNativeWebauthnSupport) {
