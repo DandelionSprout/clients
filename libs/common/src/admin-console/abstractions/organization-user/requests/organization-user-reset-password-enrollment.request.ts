@@ -5,5 +5,5 @@ export class OrganizationUserResetPasswordEnrollmentRequest extends SecretVerifi
 }
 
 export class OrganizationUserResetPasswordWithIdRequest extends OrganizationUserResetPasswordEnrollmentRequest {
-  orgId: string;
+  organizationId: string;
 }
