@@ -171,11 +171,10 @@ describe("KeyRotationService", () => {
       expect(mockApiService.postAccountKey).toHaveBeenCalled();
       expect(mockEmergencyAccessService.postLegacyRotation).toHaveBeenCalled();
       expect(mockAccountRecoveryService.postLegacyRotation).toHaveBeenCalled();
-      expect(mockApiService.rotateKeyAndEncryptedData).not.toHaveBeenCalled();
     });
 
     it("throws if server rotation fails", async () => {
-      mockApiService.rotateKeyAndEncryptedData.mockRejectedValueOnce(new Error("mockError"));
+      mockApiService.postAccountKey.mockRejectedValueOnce(new Error("mockError"));
 
       await expect(
         keyRotationService.rotateUserKeyAndEncryptedData("mockMasterPassword")
