@@ -15,7 +15,7 @@ import { FolderService } from "@bitwarden/common/vault/abstractions/folder/folde
 import { CipherWithIdRequest } from "@bitwarden/common/vault/models/request/cipher-with-id.request";
 import { FolderWithIdRequest } from "@bitwarden/common/vault/models/request/folder-with-id.request";
 
-import { AccountRecoveryService } from "../../admin-console/organizations/members/services/account-recovery/account-recovery.service";
+import { OrganizationUserResetPasswordService } from "../../admin-console/organizations/members/services/organization-user-reset-password/organization-user-reset-password.service";
 import { EmergencyAccessService } from "../emergency-access";
 
 import { KeyRotationApiService } from "./key-rotation-api.service";
@@ -29,7 +29,7 @@ export class KeyRotationService {
     private folderService: FolderService,
     private sendService: SendService,
     private emergencyAccessService: EmergencyAccessService,
-    private accountRecoveryService: AccountRecoveryService,
+    private resetPasswordService: OrganizationUserResetPasswordService,
     private deviceTrustCryptoService: DeviceTrustCryptoServiceAbstraction,
     private cryptoService: CryptoService,
     private encryptService: EncryptService,
@@ -78,7 +78,7 @@ export class KeyRotationService {
     request.folders = await this.encryptFolders(newUserKey);
     request.sends = await this.sendService.getRotatedKeys(newUserKey);
     request.emergencyAccessKeys = await this.emergencyAccessService.getRotatedKeys(newUserKey);
-    request.resetPasswordKeys = await this.accountRecoveryService.getRotatedKeys(newUserKey);
+    request.resetPasswordKeys = await this.resetPasswordService.getRotatedKeys(newUserKey);
 
     if (await this.configService.getFeatureFlag<boolean>(FeatureFlag.KeyRotationImprovements)) {
       await this.apiService.postAccountKey(request);
@@ -134,6 +134,6 @@ export class KeyRotationService {
 
     // Update account recovery keys
     const userId = await this.stateService.getUserId();
-    await this.accountRecoveryService.postLegacyRotation(userId, request.resetPasswordKeys);
+    await this.resetPasswordService.postLegacyRotation(userId, request.resetPasswordKeys);
   }
 }

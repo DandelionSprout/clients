@@ -14,7 +14,7 @@ import { UserDialogModule } from "./components/member-dialog";
 import { ResetPasswordComponent } from "./components/reset-password.component";
 import { MembersRoutingModule } from "./members-routing.module";
 import { PeopleComponent } from "./people.component";
-import { AccountRecoveryModule } from "./services/account-recovery/account-recovery.module";
+import { OrganizationUserResetPasswordModule } from "./services/organization-user-reset-password/organization-user-reset-password.module";
 
 @NgModule({
   imports: [
@@ -23,7 +23,7 @@ import { AccountRecoveryModule } from "./services/account-recovery/account-recov
     MembersRoutingModule,
     UserDialogModule,
     PasswordCalloutComponent,
-    AccountRecoveryModule,
+    OrganizationUserResetPasswordModule,
   ],
   declarations: [
     BulkConfirmComponent,

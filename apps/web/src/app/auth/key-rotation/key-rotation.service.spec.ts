@@ -21,7 +21,7 @@ import { Folder } from "@bitwarden/common/vault/models/domain/folder";
 import { CipherView } from "@bitwarden/common/vault/models/view/cipher.view";
 import { FolderView } from "@bitwarden/common/vault/models/view/folder.view";
 
-import { AccountRecoveryService } from "../../admin-console/organizations/members/services/account-recovery/account-recovery.service";
+import { OrganizationUserResetPasswordService } from "../../admin-console/organizations/members/services/organization-user-reset-password/organization-user-reset-password.service";
 import { StateService } from "../../core";
 import { EmergencyAccessService } from "../emergency-access";
 
@@ -36,7 +36,7 @@ describe("KeyRotationService", () => {
   let mockFolderService: MockProxy<FolderService>;
   let mockSendService: MockProxy<SendService>;
   let mockEmergencyAccessService: MockProxy<EmergencyAccessService>;
-  let mockAccountRecoveryService: MockProxy<AccountRecoveryService>;
+  let mockResetPasswordService: MockProxy<OrganizationUserResetPasswordService>;
   let mockDeviceTrustCryptoService: MockProxy<DeviceTrustCryptoServiceAbstraction>;
   let mockCryptoService: MockProxy<CryptoService>;
   let mockEncryptService: MockProxy<EncryptService>;
@@ -49,7 +49,7 @@ describe("KeyRotationService", () => {
     mockFolderService = mock<FolderService>();
     mockSendService = mock<SendService>();
     mockEmergencyAccessService = mock<EmergencyAccessService>();
-    mockAccountRecoveryService = mock<AccountRecoveryService>();
+    mockResetPasswordService = mock<OrganizationUserResetPasswordService>();
     mockDeviceTrustCryptoService = mock<DeviceTrustCryptoServiceAbstraction>();
     mockCryptoService = mock<CryptoService>();
     mockEncryptService = mock<EncryptService>();
@@ -62,7 +62,7 @@ describe("KeyRotationService", () => {
       mockFolderService,
       mockSendService,
       mockEmergencyAccessService,
-      mockAccountRecoveryService,
+      mockResetPasswordService,
       mockDeviceTrustCryptoService,
       mockCryptoService,
       mockEncryptService,
@@ -170,7 +170,7 @@ describe("KeyRotationService", () => {
 
       expect(mockApiService.postAccountKey).toHaveBeenCalled();
       expect(mockEmergencyAccessService.postLegacyRotation).toHaveBeenCalled();
-      expect(mockAccountRecoveryService.postLegacyRotation).toHaveBeenCalled();
+      expect(mockResetPasswordService.postLegacyRotation).toHaveBeenCalled();
     });
 
     it("throws if server rotation fails", async () => {

@@ -19,7 +19,7 @@ import {
 } from "@bitwarden/common/platform/models/domain/symmetric-crypto-key";
 
 @Injectable()
-export class AccountRecoveryService {
+export class OrganizationUserResetPasswordService {
   constructor(
     private cryptoService: CryptoService,
     private encryptService: EncryptService,

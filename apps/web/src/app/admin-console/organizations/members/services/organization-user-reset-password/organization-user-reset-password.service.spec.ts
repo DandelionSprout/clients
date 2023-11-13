@@ -19,10 +19,10 @@ import {
 } from "@bitwarden/common/platform/models/domain/symmetric-crypto-key";
 import { CsprngArray } from "@bitwarden/common/types/csprng";
 
-import { AccountRecoveryService } from "./account-recovery.service";
+import { OrganizationUserResetPasswordService } from "./organization-user-reset-password.service";
 
-describe("AccountRecoveryService", () => {
-  let sut: AccountRecoveryService;
+describe("OrganizationUserResetPasswordService", () => {
+  let sut: OrganizationUserResetPasswordService;
 
   let cryptoService: MockProxy<CryptoService>;
   let encryptService: MockProxy<EncryptService>;
@@ -39,7 +39,7 @@ describe("AccountRecoveryService", () => {
     organizationApiService = mock<OrganizationApiService>();
     i18nService = mock<I18nService>();
 
-    sut = new AccountRecoveryService(
+    sut = new OrganizationUserResetPasswordService(
       cryptoService,
       encryptService,
       organizationService,
