@@ -3,14 +3,12 @@ import { firstValueFrom } from "rxjs";
 
 import { DeviceTrustCryptoServiceAbstraction } from "@bitwarden/common/auth/abstractions/device-trust-crypto.service.abstraction";
 import { FeatureFlag } from "@bitwarden/common/enums/feature-flag.enum";
-import { UpdateKeyRequest } from "@bitwarden/common/models/request/update-key.request";
 import { ConfigServiceAbstraction } from "@bitwarden/common/platform/abstractions/config/config.service.abstraction";
 import { CryptoService } from "@bitwarden/common/platform/abstractions/crypto.service";
 import { EncryptService } from "@bitwarden/common/platform/abstractions/encrypt.service";
 import { StateService } from "@bitwarden/common/platform/abstractions/state.service";
 import { EncryptedString } from "@bitwarden/common/platform/models/domain/enc-string";
 import { UserKey } from "@bitwarden/common/platform/models/domain/symmetric-crypto-key";
-import { SendWithIdRequest } from "@bitwarden/common/tools/send/models/request/send-with-id.request";
 import { SendService } from "@bitwarden/common/tools/send/services/send.service.abstraction";
 import { CipherService } from "@bitwarden/common/vault/abstractions/cipher.service";
 import { FolderService } from "@bitwarden/common/vault/abstractions/folder/folder.service.abstraction";
@@ -21,7 +19,7 @@ import { AccountRecoveryService } from "../../admin-console/organizations/member
 import { EmergencyAccessService } from "../emergency-access";
 
 import { KeyRotationApiService } from "./key-rotation-api.service";
-import { RotateUserKeyRequest } from "./request/RotateUserKeyRequest";
+import { UpdateKeyRequest } from "./request/update-key.request";
 
 @Injectable()
 export class KeyRotationService {
@@ -65,7 +63,7 @@ export class KeyRotationService {
     }
 
     // Create new request
-    const request = new RotateUserKeyRequest();
+    const request = new UpdateKeyRequest();
 
     // Add new user key
     request.key = newEncUserKey.encryptedString;
@@ -78,12 +76,12 @@ export class KeyRotationService {
     request.privateKey = await this.encryptPrivateKey(newUserKey);
     request.ciphers = await this.encryptCiphers(newUserKey);
     request.folders = await this.encryptFolders(newUserKey);
-    request.sends = await this.encryptSends(newUserKey);
+    request.sends = await this.sendService.getRotatedKeys(newUserKey);
     request.emergencyAccessKeys = await this.emergencyAccessService.getRotatedKeys(newUserKey);
-    request.accountRecoveryKeys = await this.accountRecoveryService.getRotatedKeys(newUserKey);
+    request.resetPasswordKeys = await this.accountRecoveryService.getRotatedKeys(newUserKey);
 
     if (await this.configService.getFeatureFlag<boolean>(FeatureFlag.KeyRotationImprovements)) {
-      await this.apiService.rotateKeyAndEncryptedData(request);
+      await this.apiService.postAccountKey(request);
     } else {
       await this.rotateUserKeyAndEncryptedDataLegacy(request);
     }
@@ -99,10 +97,11 @@ export class KeyRotationService {
     return (await this.encryptService.encrypt(privateKey, newUserKey)).encryptedString;
   }
 
-  private async encryptCiphers(newUserKey: UserKey): Promise<CipherWithIdRequest[] | null> {
+  private async encryptCiphers(newUserKey: UserKey): Promise<CipherWithIdRequest[]> {
     const ciphers = await this.cipherService.getAllDecrypted();
     if (!ciphers) {
-      return;
+      // Must return an empty array for backwards compatibility
+      return [];
     }
     return await Promise.all(
       ciphers.map(async (cipher) => {
@@ -112,10 +111,11 @@ export class KeyRotationService {
     );
   }
 
-  private async encryptFolders(newUserKey: UserKey): Promise<FolderWithIdRequest[] | null> {
+  private async encryptFolders(newUserKey: UserKey): Promise<FolderWithIdRequest[]> {
     const folders = await firstValueFrom(this.folderService.folderViews$);
     if (!folders) {
-      return;
+      // Must return an empty array for backwards compatibility
+      return [];
     }
     return await Promise.all(
       folders.map(async (folder) => {
@@ -125,38 +125,15 @@ export class KeyRotationService {
     );
   }
 
-  private async encryptSends(newUserKey: UserKey): Promise<SendWithIdRequest[] | null> {
-    const sends = await firstValueFrom(this.sendService.sends$);
-    if (!sends) {
-      return;
-    }
-    return await Promise.all(
-      sends.map(async (send) => {
-        const sendKey = await this.encryptService.decryptToBytes(send.key, null);
-        send.key = (await this.encryptService.encrypt(sendKey, newUserKey)) ?? send.key;
-        return new SendWithIdRequest(send);
-      })
-    );
-  }
-
-  private async rotateUserKeyAndEncryptedDataLegacy(data: RotateUserKeyRequest): Promise<void> {
-    const request = new UpdateKeyRequest();
-    request.key = data.key;
-    request.masterPasswordHash = data.masterPasswordHash;
-
-    request.privateKey = data.privateKey;
-    request.folders = data.folders;
-    request.ciphers = data.ciphers;
-    request.sends = data.sends;
-
+  private async rotateUserKeyAndEncryptedDataLegacy(request: UpdateKeyRequest): Promise<void> {
     // Update keys, ciphers, folders, and sends
     await this.apiService.postAccountKey(request);
 
     // Update emergency access keys
-    await this.emergencyAccessService.postLegacyRotation(data.emergencyAccessKeys);
+    await this.emergencyAccessService.postLegacyRotation(request.emergencyAccessKeys);
 
     // Update account recovery keys
     const userId = await this.stateService.getUserId();
-    await this.accountRecoveryService.postLegacyRotation(userId, data.accountRecoveryKeys);
+    await this.accountRecoveryService.postLegacyRotation(userId, request.resetPasswordKeys);
   }
 }
