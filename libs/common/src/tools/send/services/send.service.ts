@@ -8,12 +8,13 @@ import { StateService } from "../../../platform/abstractions/state.service";
 import { Utils } from "../../../platform/misc/utils";
 import { EncArrayBuffer } from "../../../platform/models/domain/enc-array-buffer";
 import { EncString } from "../../../platform/models/domain/enc-string";
-import { SymmetricCryptoKey } from "../../../platform/models/domain/symmetric-crypto-key";
+import { SymmetricCryptoKey, UserKey } from "../../../platform/models/domain/symmetric-crypto-key";
 import { SendType } from "../enums/send-type";
 import { SendData } from "../models/data/send.data";
 import { Send } from "../models/domain/send";
 import { SendFile } from "../models/domain/send-file";
 import { SendText } from "../models/domain/send-text";
+import { SendWithIdRequest } from "../models/request/send-with-id.request";
 import { SendView } from "../models/view/send.view";
 
 import { InternalSendService as InternalSendServiceAbstraction } from "./send.service.abstraction";
@@ -210,6 +211,16 @@ export class SendService implements InternalSendServiceAbstraction {
   async replace(sends: { [id: string]: SendData }): Promise<any> {
     await this.updateObservables(sends);
     await this.stateService.setEncryptedSends(sends);
+  }
+
+  async getRotatedKeys(newUserKey: UserKey): Promise<SendWithIdRequest[]> {
+    return await Promise.all(
+      this._sends.value.map(async (send) => {
+        const sendKey = await this.cryptoService.decryptToBytes(send.key);
+        send.key = await this.cryptoService.encrypt(sendKey, newUserKey);
+        return new SendWithIdRequest(send);
+      })
+    );
   }
 
   private parseFile(send: Send, file: File, key: SymmetricCryptoKey): Promise<EncArrayBuffer> {
