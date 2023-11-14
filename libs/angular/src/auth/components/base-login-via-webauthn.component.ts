@@ -3,7 +3,7 @@ import { Router } from "@angular/router";
 
 import { LoginService } from "@bitwarden/common/auth/abstractions/login.service";
 import { WebAuthnLoginServiceAbstraction } from "@bitwarden/common/auth/abstractions/webauthn/webauthn-login.service.abstraction";
-import { ForceResetPasswordReason } from "@bitwarden/common/auth/models/domain/force-reset-password-reason";
+import { ForceSetPasswordReason } from "@bitwarden/common/auth/models/domain/force-set-password-reason";
 import { WebAuthnLoginCredentialAssertionView } from "@bitwarden/common/auth/models/view/webauthn-login/webauthn-login-credential-assertion.view";
 import { ErrorResponse } from "@bitwarden/common/models/response/error.response";
 import { LogService } from "@bitwarden/common/platform/abstractions/log.service";
@@ -52,7 +52,7 @@ export class BaseLoginViaWebAuthnComponent implements OnInit {
       const authResult = await this.webAuthnLoginService.logIn(assertion);
       if (authResult.requiresTwoFactor) {
         await this.router.navigate([this.twoFactorRoute]);
-      } else if (authResult.forcePasswordReset != ForceResetPasswordReason.None) {
+      } else if (authResult.forcePasswordReset == ForceSetPasswordReason.AdminForcePasswordReset) {
         await this.router.navigate([this.forcePasswordResetRoute]);
       } else {
         await this.setRememberEmailValues();
