@@ -1,5 +1,5 @@
 import { mock } from "jest-mock-extended";
-import { of } from "rxjs";
+import { firstValueFrom, of } from "rxjs";
 
 import { ConfigServiceAbstraction } from "../../../platform/abstractions/config/config.service.abstraction";
 import { LogService } from "../../../platform/abstractions/log.service";
@@ -118,32 +118,22 @@ describe("WebAuthnLoginService", () => {
   });
 
   describe("enabled$", () => {
-    it("should emit true when feature flag for PasswordlessLogin is enabled", (done) => {
+    it("should emit true when feature flag for PasswordlessLogin is enabled", async () => {
       // Arrange
       const webAuthnLoginService = setup(true);
 
       // Act & Assert
-      webAuthnLoginService.enabled$.subscribe({
-        next: (enabled) => {
-          expect(enabled).toBe(true);
-          done();
-        },
-        error: done.fail,
-      });
+      const result = await firstValueFrom(webAuthnLoginService.enabled$);
+      expect(result).toBe(true);
     });
 
-    it("should emit false when feature flag for PasswordlessLogin is disabled", (done) => {
+    it("should emit false when feature flag for PasswordlessLogin is disabled", async () => {
       // Arrange
       const webAuthnLoginService = setup(false);
 
       // Act & Assert
-      webAuthnLoginService.enabled$.subscribe({
-        next: (enabled) => {
-          expect(enabled).toBe(false);
-          done();
-        },
-        error: done.fail,
-      });
+      const result = await firstValueFrom(webAuthnLoginService.enabled$);
+      expect(result).toBe(false);
     });
   });
 
