@@ -5,6 +5,7 @@ import { WebAuthnLoginServiceAbstraction } from "@bitwarden/common/auth/abstract
 import { ForceSetPasswordReason } from "@bitwarden/common/auth/models/domain/force-set-password-reason";
 import { WebAuthnLoginCredentialAssertionView } from "@bitwarden/common/auth/models/view/webauthn-login/webauthn-login-credential-assertion.view";
 import { ErrorResponse } from "@bitwarden/common/models/response/error.response";
+import { I18nService } from "@bitwarden/common/platform/abstractions/i18n.service";
 import { LogService } from "@bitwarden/common/platform/abstractions/log.service";
 import { ValidationService } from "@bitwarden/common/platform/abstractions/validation.service";
 
@@ -22,7 +23,8 @@ export class BaseLoginViaWebAuthnComponent implements OnInit {
     private webAuthnLoginService: WebAuthnLoginServiceAbstraction,
     private router: Router,
     private logService: LogService,
-    private validationService: ValidationService
+    private validationService: ValidationService,
+    private i18nService: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -59,7 +61,7 @@ export class BaseLoginViaWebAuthnComponent implements OnInit {
       }
     } catch (error) {
       if (error instanceof ErrorResponse) {
-        this.validationService.showError(error);
+        this.validationService.showError(this.i18nService.t("invalidPasskeyPleaseTryAgain"));
       }
       this.logService.error(error);
       this.currentState = "assertFailed";

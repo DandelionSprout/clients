@@ -614,6 +614,9 @@
   "loginWithPasskey": {
     "message": "Log in with passkey"
   },
+  "invalidPasskeyPleaseTryAgain": {
+    "message": "Invalid Passkey. Please try again."
+  },
   "loginWithPasskeyInfo": {
     "message": "Use a generated passkey that will automatically log you in without a password. Biometrics, like facial recognition or fingerprint, or another FIDO2 security method will verify your identity."
   },
