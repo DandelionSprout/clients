@@ -6,11 +6,11 @@ import { CredentialCreateOptionsView } from "../../views/credential-create-optio
 import { PendingWebauthnLoginCredentialView } from "../../views/pending-webauthn-login-credential.view";
 import { RotateableKeySetService } from "../rotateable-key-set.service";
 
-import { WebAuthnAdminApiService } from "./webauthn-admin-api.service";
+import { WebAuthnLoginAdminApiService } from "./webauthn-login-admin-api.service";
 import { WebauthnLoginAdminService } from "./webauthn-login-admin.service";
 
 describe("WebauthnAdminService", () => {
-  let apiService!: MockProxy<WebAuthnAdminApiService>;
+  let apiService!: MockProxy<WebAuthnLoginAdminApiService>;
   let userVerificationService!: MockProxy<UserVerificationService>;
   let rotateableKeySetService!: MockProxy<RotateableKeySetService>;
   let credentials: MockProxy<CredentialsContainer>;
@@ -20,7 +20,7 @@ describe("WebauthnAdminService", () => {
     // Polyfill missing class
     window.PublicKeyCredential = class {} as any;
     window.AuthenticatorAttestationResponse = class {} as any;
-    apiService = mock<WebAuthnAdminApiService>();
+    apiService = mock<WebAuthnLoginAdminApiService>();
     userVerificationService = mock<UserVerificationService>();
     rotateableKeySetService = mock<RotateableKeySetService>();
     credentials = mock<CredentialsContainer>();

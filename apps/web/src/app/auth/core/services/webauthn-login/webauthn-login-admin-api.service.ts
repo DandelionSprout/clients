@@ -9,7 +9,7 @@ import { WebauthnLoginCredentialCreateOptionsResponse } from "./response/webauth
 import { WebauthnLoginCredentialResponse } from "./response/webauthn-login-credential.response";
 
 @Injectable({ providedIn: "root" })
-export class WebAuthnAdminApiService {
+export class WebAuthnLoginAdminApiService {
   constructor(private apiService: ApiService) {}
 
   async getCredentialCreateOptions(

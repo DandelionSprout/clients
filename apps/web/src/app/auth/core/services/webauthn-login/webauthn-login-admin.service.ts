@@ -17,7 +17,7 @@ import { RotateableKeySetService } from "../rotateable-key-set.service";
 
 import { SaveCredentialRequest } from "./request/save-credential.request";
 import { WebauthnLoginAttestationResponseRequest } from "./request/webauthn-login-attestation-response.request";
-import { WebAuthnAdminApiService } from "./webauthn-admin-api.service";
+import { WebAuthnLoginAdminApiService } from "./webauthn-login-admin-api.service";
 @Injectable({ providedIn: "root" }) // scoped to web
 export class WebauthnLoginAdminService {
   static readonly MaxCredentialCount = 5;
@@ -35,7 +35,7 @@ export class WebauthnLoginAdminService {
   readonly loading$ = this._loading$.asObservable();
 
   constructor(
-    private apiService: WebAuthnAdminApiService,
+    private apiService: WebAuthnLoginAdminApiService,
     private userVerificationService: UserVerificationService,
     private rotateableKeySetService: RotateableKeySetService,
     @Optional() navigatorCredentials?: CredentialsContainer,
