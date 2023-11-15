@@ -1,13 +1,4 @@
-import { ApiService } from "../../abstractions/api.service";
-import { AppIdService } from "../../platform/abstractions/app-id.service";
-import { CryptoService } from "../../platform/abstractions/crypto.service";
-import { LogService } from "../../platform/abstractions/log.service";
-import { MessagingService } from "../../platform/abstractions/messaging.service";
-import { PlatformUtilsService } from "../../platform/abstractions/platform-utils.service";
-import { StateService } from "../../platform/abstractions/state.service";
 import { SymmetricCryptoKey, UserKey } from "../../platform/models/domain/symmetric-crypto-key";
-import { TokenService } from "../abstractions/token.service";
-import { TwoFactorService } from "../abstractions/two-factor.service";
 import { AuthResult } from "../models/domain/auth-result";
 import { WebAuthnLoginCredentials } from "../models/domain/login-credentials";
 import { TokenTwoFactorRequest } from "../models/request/identity-token/token-two-factor.request";
@@ -35,30 +26,6 @@ export class WebAuthnLoginStrategy extends LoginStrategy {
 
   tokenRequest: WebAuthnTokenRequest;
   private credentials: WebAuthnLoginCredentials;
-
-  constructor(
-    cryptoService: CryptoService,
-    apiService: ApiService,
-    tokenService: TokenService,
-    appIdService: AppIdService,
-    platformUtilsService: PlatformUtilsService,
-    messagingService: MessagingService,
-    logService: LogService,
-    stateService: StateService,
-    twoFactorService: TwoFactorService
-  ) {
-    super(
-      cryptoService,
-      apiService,
-      tokenService,
-      appIdService,
-      platformUtilsService,
-      messagingService,
-      logService,
-      stateService,
-      twoFactorService
-    );
-  }
 
   protected setMasterKey(response: IdentityTokenResponse) {
     return Promise.resolve();
