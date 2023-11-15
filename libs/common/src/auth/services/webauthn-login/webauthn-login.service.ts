@@ -3,7 +3,7 @@ import { Observable } from "rxjs";
 import { FeatureFlag } from "../../../enums/feature-flag.enum";
 import { ConfigServiceAbstraction } from "../../../platform/abstractions/config/config.service.abstraction";
 import { LogService } from "../../../platform/abstractions/log.service";
-import { SymmetricCryptoKey } from "../../../platform/models/domain/symmetric-crypto-key";
+import { PrfKey } from "../../../platform/models/domain/symmetric-crypto-key";
 import { AuthService } from "../../abstractions/auth.service";
 import { WebAuthnLoginApiServiceAbstraction } from "../../abstractions/webauthn/webauthn-login-api.service.abstraction";
 import { WebAuthnLoginServiceAbstraction } from "../../abstractions/webauthn/webauthn-login.service.abstraction";
@@ -51,7 +51,7 @@ export class WebAuthnLoginService implements WebAuthnLoginServiceAbstraction {
       }
       // TODO: Remove `any` when typescript typings add support for PRF
       const prfResult = (response.getClientExtensionResults() as any).prf?.results?.first;
-      let symmetricPrfKey: SymmetricCryptoKey | undefined;
+      let symmetricPrfKey: PrfKey | undefined;
       if (prfResult != undefined) {
         symmetricPrfKey = createSymmetricKeyFromPrf(prfResult);
       }
