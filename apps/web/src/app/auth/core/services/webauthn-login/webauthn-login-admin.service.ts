@@ -18,7 +18,7 @@ import { RotateableKeySetService } from "../rotateable-key-set.service";
 import { SaveCredentialRequest } from "./request/save-credential.request";
 import { WebauthnLoginAttestationResponseRequest } from "./request/webauthn-login-attestation-response.request";
 import { WebAuthnLoginAdminApiService } from "./webauthn-login-admin-api.service";
-@Injectable({ providedIn: "root" }) // scoped to web
+@Injectable({ providedIn: "root" })
 export class WebauthnLoginAdminService {
   static readonly MaxCredentialCount = 5;
 
