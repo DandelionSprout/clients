@@ -59,9 +59,7 @@ export class BaseLoginViaWebAuthnComponent implements OnInit {
       }
     } catch (error) {
       if (error instanceof ErrorResponse) {
-        await this.router.navigate(["/login"]);
         this.validationService.showError(error);
-        return;
       }
       this.logService.error(error);
       this.currentState = "assertFailed";
