@@ -1,4 +1,4 @@
-import { from, Observable } from "rxjs";
+import { Observable } from "rxjs";
 
 import { FeatureFlag } from "../../../enums/feature-flag.enum";
 import { ConfigServiceAbstraction } from "../../../platform/abstractions/config/config.service.abstraction";
@@ -25,7 +25,7 @@ export class WebAuthnLoginService implements WebAuthnLoginServiceAbstraction {
     private navigatorCredentials: CredentialsContainer,
     private logService?: LogService
   ) {
-    this.enabled$ = from(this.configService.getFeatureFlag$(FeatureFlag.PasswordlessLogin, false));
+    this.enabled$ = this.configService.getFeatureFlag$(FeatureFlag.PasswordlessLogin, false);
   }
 
   async getCredentialAssertionOptions(): Promise<WebAuthnLoginCredentialAssertionOptionsView> {
