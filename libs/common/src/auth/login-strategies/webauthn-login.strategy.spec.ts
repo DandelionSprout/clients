@@ -8,9 +8,14 @@ import { MessagingService } from "../../platform/abstractions/messaging.service"
 import { PlatformUtilsService } from "../../platform/abstractions/platform-utils.service";
 import { StateService } from "../../platform/abstractions/state.service";
 import { Utils } from "../../platform/misc/utils";
-import { PrfKey, SymmetricCryptoKey } from "../../platform/models/domain/symmetric-crypto-key";
+import {
+  PrfKey,
+  SymmetricCryptoKey,
+  UserKey,
+} from "../../platform/models/domain/symmetric-crypto-key";
 import { TokenService } from "../abstractions/token.service";
 import { TwoFactorService } from "../abstractions/two-factor.service";
+import { AuthResult } from "../models/domain/auth-result";
 import { WebAuthnLoginCredentials } from "../models/domain/login-credentials";
 import { IdentityTokenResponse } from "../models/response/identity-token.response";
 import { IUserDecryptionOptionsServerResponse } from "../models/response/user-decryption-options/user-decryption-options.response";
@@ -158,16 +163,16 @@ describe("WebAuthnLoginStrategy", () => {
       },
     };
 
-  // const mockIdTokenResponseWithModifiedWebAuthnPrfOption = (key: string, value: any) => {
-  //   const userDecryptionOpts: IUserDecryptionOptionsServerResponse = {
-  //     ...userDecryptionOptsServerResponseWithWebAuthnPrfOption,
-  //     WebAuthnPrfOption: {
-  //       ...userDecryptionOptsServerResponseWithWebAuthnPrfOption.WebAuthnPrfOption,
-  //       [key]: value,
-  //     },
-  //   };
-  //   return identityTokenResponseFactory(null, userDecryptionOpts);
-  // };
+  const mockIdTokenResponseWithModifiedWebAuthnPrfOption = (key: string, value: any) => {
+    const userDecryptionOpts: IUserDecryptionOptionsServerResponse = {
+      ...userDecryptionOptsServerResponseWithWebAuthnPrfOption,
+      WebAuthnPrfOption: {
+        ...userDecryptionOptsServerResponseWithWebAuthnPrfOption.WebAuthnPrfOption,
+        [key]: value,
+      },
+    };
+    return identityTokenResponseFactory(null, userDecryptionOpts);
+  };
 
   it("successfully logs in with valid credentials", async () => {
     // Arrange
@@ -198,6 +203,7 @@ describe("WebAuthnLoginStrategy", () => {
       })
     );
 
+    expect(authResult).toBeInstanceOf(AuthResult);
     expect(authResult).toMatchObject({
       captchaSiteKey: "",
       forcePasswordReset: 0,
@@ -208,7 +214,7 @@ describe("WebAuthnLoginStrategy", () => {
     });
   });
 
-  it("decrypts and sets user key when trusted device decryption option exists with valid device key and enc key data", async () => {
+  it("decrypts and sets user key when webAuthn PRF decryption option exists with valid PRF key and enc key data", async () => {
     // Arrange
     const idTokenResponse: IdentityTokenResponse = identityTokenResponseFactory(
       null,
@@ -216,22 +222,33 @@ describe("WebAuthnLoginStrategy", () => {
     );
 
     apiService.postIdentityToken.mockResolvedValue(idTokenResponse);
-    // cryptoService.decryptToBytes.mockResolvedValue(mockEncPrfPrivateKey);
-    // cryptoService.rsaDecrypt.mockResolvedValue(mockUserKey);
 
-    // TODO finish writing this test
+    const mockPrfPrivateKey: Uint8Array = randomBytes(32);
+    const mockUserKeyArray: Uint8Array = randomBytes(32);
+    const mockUserKey = new SymmetricCryptoKey(mockUserKeyArray) as UserKey;
 
-    // deviceTrustCryptoService.getDeviceKey.mockResolvedValue(mockDeviceKey);
-    // deviceTrustCryptoService.decryptUserKeyWithDeviceKey.mockResolvedValue(mockUserKey);
+    cryptoService.decryptToBytes.mockResolvedValue(mockPrfPrivateKey);
+    cryptoService.rsaDecrypt.mockResolvedValue(mockUserKeyArray);
 
     // Act
-    // await ssoLoginStrategy.logIn(credentials);
+    await webAuthnLoginStrategy.logIn(webAuthnCredentials);
 
     // // Assert
-    // expect(deviceTrustCryptoService.getDeviceKey).toHaveBeenCalledTimes(1);
-    // expect(deviceTrustCryptoService.decryptUserKeyWithDeviceKey).toHaveBeenCalledTimes(1);
-    // expect(cryptoSvcSetUserKeySpy).toHaveBeenCalledTimes(1);
-    // expect(cryptoSvcSetUserKeySpy).toHaveBeenCalledWith(mockUserKey);
+    expect(cryptoService.decryptToBytes).toHaveBeenCalledTimes(1);
+    expect(cryptoService.decryptToBytes).toHaveBeenCalledWith(
+      idTokenResponse.userDecryptionOptions.webAuthnPrfOption.encryptedPrivateKey,
+      webAuthnCredentials.prfKey
+    );
+    expect(cryptoService.rsaDecrypt).toHaveBeenCalledTimes(1);
+    expect(cryptoService.rsaDecrypt).toHaveBeenCalledWith(
+      idTokenResponse.userDecryptionOptions.webAuthnPrfOption.encryptedUserKey.encryptedString,
+      mockPrfPrivateKey
+    );
+    expect(cryptoService.setUserKey).toHaveBeenCalledWith(mockUserKey);
+
+    // Master key and private key should not be set
+    expect(cryptoService.setMasterKey).not.toHaveBeenCalled();
+    expect(cryptoService.setPrivateKey).not.toHaveBeenCalled();
   });
 
   it("does not try to set the user key when prfKey is missing", async () => {
@@ -255,36 +272,60 @@ describe("WebAuthnLoginStrategy", () => {
     expect(cryptoService.setUserKey).not.toHaveBeenCalled();
   });
 
-  // it("handles invalid credentials", async () => {
-  //   // Arrange
-  //   // Provide invalid credentials or mock a failure response
+  describe.each([
+    {
+      valueName: "encPrfPrivateKey",
+    },
+    {
+      valueName: "encUserKey",
+    },
+  ])("given webAuthn PRF decryption option has missing encrypted key data", ({ valueName }) => {
+    it(`does not set the user key when ${valueName} is missing`, async () => {
+      // Arrange
+      const idTokenResponse = mockIdTokenResponseWithModifiedWebAuthnPrfOption(valueName, null);
+      apiService.postIdentityToken.mockResolvedValue(idTokenResponse);
 
-  //   // Act and Assert
-  //   await expect(
-  //     webAuthnLoginStrategy.logIn(/* invalid credentials */)
-  //   ).rejects.toThrow(/* expected error or failure message */);
-  // });
+      // Act
+      await webAuthnLoginStrategy.logIn(webAuthnCredentials);
 
-  // it("handles API service failure", async () => {
-  //   // Arrange
-  //   apiService.postIdentityToken.mockRejectedValue(new Error("Network error"));
+      // Assert
+      expect(cryptoService.setUserKey).not.toHaveBeenCalled();
+    });
+  });
 
-  //   // Act and Assert
-  //   await expect(webAuthnLoginStrategy.logIn(webAuthnCredentials)).rejects.toThrow(
-  //     "Network error"
-  //   );
-  // });
+  it("does not set the user key when the PRF encrypted private key decryption fails", async () => {
+    // Arrange
+    const idTokenResponse: IdentityTokenResponse = identityTokenResponseFactory(
+      null,
+      userDecryptionOptsServerResponseWithWebAuthnPrfOption
+    );
 
-  // it("builds the correct token request", async () => {
-  //   // Act
-  //   await webAuthnLoginStrategy.logIn(webAuthnCredentials);
+    apiService.postIdentityToken.mockResolvedValue(idTokenResponse);
 
-  //   // Assert
-  //   expect(webAuthnLoginStrategy.tokenRequest).toBeInstanceOf(WebAuthnTokenRequest);
-  //   expect(webAuthnLoginStrategy.tokenRequest).toMatchObject({
-  //     token: token,
-  //     deviceResponse: expect.any(WebAuthnLoginAssertionResponseRequest),
-  //     // ... other properties
-  //   });
-  // });
+    cryptoService.decryptToBytes.mockResolvedValue(null);
+
+    // Act
+    await webAuthnLoginStrategy.logIn(webAuthnCredentials);
+
+    // Assert
+    expect(cryptoService.setUserKey).not.toHaveBeenCalled();
+  });
+
+  it("does not set the user key when the encrypted user key decryption fails", async () => {
+    // Arrange
+    const idTokenResponse: IdentityTokenResponse = identityTokenResponseFactory(
+      null,
+      userDecryptionOptsServerResponseWithWebAuthnPrfOption
+    );
+
+    apiService.postIdentityToken.mockResolvedValue(idTokenResponse);
+
+    cryptoService.rsaDecrypt.mockResolvedValue(null);
+
+    // Act
+    await webAuthnLoginStrategy.logIn(webAuthnCredentials);
+
+    // Assert
+    expect(cryptoService.setUserKey).not.toHaveBeenCalled();
+  });
 });

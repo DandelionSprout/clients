@@ -1,5 +1,3 @@
-// TODO: Add tests for this strategy
-
 import { ApiService } from "../../abstractions/api.service";
 import { AppIdService } from "../../platform/abstractions/app-id.service";
 import { CryptoService } from "../../platform/abstractions/crypto.service";
@@ -99,6 +97,7 @@ export class WebAuthnLoginStrategy extends LoginStrategy {
     return Promise.resolve();
   }
 
+  // TODO: should this be here?
   async logInTwoFactor(
     twoFactor: TokenTwoFactorRequest,
     captchaResponse: string
