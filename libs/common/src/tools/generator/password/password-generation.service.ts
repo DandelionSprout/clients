@@ -21,6 +21,8 @@ const DefaultOptions: PasswordGeneratorOptions = {
   minLowercase: 0,
   special: false,
   minSpecial: 1,
+  extraSpecial: false,
+  minExtraSpecial: 1,
   type: "password",
   numWords: 3,
   wordSeparator: "-",
@@ -48,7 +50,7 @@ export class PasswordGenerationService implements PasswordGenerationServiceAbstr
     // sanitize
     this.sanitizePasswordLength(o, true);
 
-    const minLength: number = o.minUppercase + o.minLowercase + o.minNumber + o.minSpecial;
+    const minLength: number = o.minUppercase + o.minLowercase + o.minNumber + o.minSpecial + o.minExtraSpecial;
     if (o.length < minLength) {
       o.length = minLength;
     }
@@ -71,6 +73,11 @@ export class PasswordGenerationService implements PasswordGenerationServiceAbstr
     }
     if (o.special && o.minSpecial > 0) {
       for (let i = 0; i < o.minSpecial; i++) {
+        positions.push("s");
+      }
+    }
+    if (o.extraSpecial && o.minExtraSpecial > 0) {
+      for (let i = 0; i < o.minExtraSpecial; i++) {
         positions.push("s");
       }
     }
@@ -113,6 +120,11 @@ export class PasswordGenerationService implements PasswordGenerationServiceAbstr
       allCharSet += specialCharSet;
     }
 
+    const extraSpecialCharSet = "★☆≤≥⌘‽™©®°¢✓ßðþÞɦ♪♫→↑←↓ⱴŋμπ¥⅍ȜλœŒŊ+¾½⅛§¦áàéèíìóòúùýỳÁÀÉÈÍÌÓÒÚÙÝỲäëïöüÿÄËÏÖÜŸæøåÆØÅāēīōūȳĀĒĪŌŪȲãẽĩõỹÃẼĨÕỸâêîôûŷÂÊÎÔÛŶ•ąęįǫųşçĄĘĮǪŲŞÇ¤€ǵǴḱḰẃẂśŚ:;=£₩δあいうえちすたとふみアイウオサチテネ四上月山足文गफर";
+    if (o.extraSpecial) {
+      allCharSet += extraSpecialCharSet;
+    }
+
     let password = "";
     for (let i = 0; i < o.length; i++) {
       let positionChars: string;
@@ -128,6 +140,9 @@ export class PasswordGenerationService implements PasswordGenerationServiceAbstr
           break;
         case "s":
           positionChars = specialCharSet;
+          break;
+        case "e":
+          positionChars = extraSpecialCharSet;
           break;
         case "a":
           positionChars = allCharSet;
